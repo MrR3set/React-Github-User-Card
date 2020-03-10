@@ -1,5 +1,7 @@
 import React from 'react';
-import UserList from "./components/UserList"
+import UserCard from "./components/UserCard";
+import SearchForm from "./components/SearchForm";
+import axios from "axios";
 import './App.css';
 const dummyData = {
   "login": "MrR3set",
@@ -43,31 +45,86 @@ class App extends React.Component{
     super();
     this.state={
         user:"MrR3set",
-        data:[]
+        data:[],
+        followers:[],
+        following:[]
     }
-}
-componentDidMount(){
-    console.log("Getting the data of", this.state.user)
-    //In here we wanna make our axios call
+  }
+
+  searchUser = _user => {
+    
+    const newUser = {
+      user: _user
+    };
     this.setState({
-        data:dummyData //In here we get the data.
+      user:newUser.user
     })
-}
+  }
+
+  componentDidMount(){
+      // In here we wanna make our axios call
+      axios
+      .get(`https://api.github.com/users/${this.state.user}`)
+      .then(gDat => {
+        this.setState({
+          data:gDat.data
+        })
+      }).catch(err => console.log(err.message));
+      axios
+      .get(`https://api.github.com/users/${this.state.user}/followers`)
+      .then(followersData => {
+        this.setState({
+          followers:followersData.data
+        })
+      }).catch(err => console.log(err.message));
+      axios
+      .get(`https://api.github.com/users/${this.state.user}/following`)
+      .then(followingData => {
+        this.setState({
+          following:followingData.data
+        })
+      }).catch(err => console.log(err.message));
+  }
 
 
-componentDidUpdate(prevProps,prevState){
-    console.log("Dummy data is->",this.state.data)
-    //In here we wanna check if the username changed, if it did I guess we must call axios again
-}
+  componentDidUpdate(prevProps,prevState){
+    console.log("searching for", this.state.user)
+      //In here we wanna check if the username changed, if it did I guess we must call axios again
+      if(prevState.user!==this.state.user){
+        axios
+        .get(`https://api.github.com/users/${this.state.user}`)
+        .then(gDat => {
+          this.setState({
+            data:gDat.data
+          })
+        }).catch(err => console.log(err.message));
+        axios
+        .get(`https://api.github.com/users/${this.state.user}/followers`)
+        .then(followersData => {
+          this.setState({
+            followers:followersData.data
+          })
+        }).catch(err => console.log(err.message));
+        axios
+        .get(`https://api.github.com/users/${this.state.user}/following`)
+        .then(followingData => {
+          this.setState({
+            following:followingData.data
+          })
+        }).catch(err => console.log(err.message));
+      }
+  }
 
-
-//Componenet unmounted Remove event listenerssss!
+  //Componenet unmounted Remove event listenerssss!
 
   render(){
     return(<div>
       {/* Make the form thing
       Make a list iterator for the array of users you gonna send bruh */}
-      <UserList data={this.state.data}></UserList>
+      <SearchForm searchUser={this.searchUser}></SearchForm>
+      <div className="userlist-wrapper">
+        <UserCard userdata={this.state.data} followers={this.state.followers} following={this.state.following}></UserCard>
+      </div>
     </div>)
   }
 };

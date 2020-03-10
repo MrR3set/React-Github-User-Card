@@ -12,16 +12,17 @@ import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 import { red } from "@material-ui/core/colors";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import MoreVertIcon from "@material-ui/icons/MoreVert";
 import GitHubIcon from '@material-ui/icons/GitHub';
 import PeopleIcon from '@material-ui/icons/People';
+import GitHubCalendar from 'github-calendar'
 const useStyles = makeStyles(theme => ({
   root: {
-    width: "40%"
+    width: "30%",
+    height:"auto",
   },
   media: {
-    height: 0,
-    paddingTop: "56.25%" // 16:9
+    paddingTop: "56.25%", // 16:9
+    backgroundSize:"contain"
   },
   expand: {
     transform: "rotate(0deg)",
@@ -39,14 +40,22 @@ const useStyles = makeStyles(theme => ({
   connections:{
     display: "flex",
     flexWrap:"nowrap",
-    justifyContent:"space-around"
-
+    justifyContent:"space-around",
+    userSelect:"none",
   },
+  users:{
+    cursor:"pointer",
+    transition:"all 0.5 ease-out",
+    "&:hover":{
+      transform:"scale(1.1)"
+    }
+  }
 }));
 
 export default function RecipeReviewCard(props) {
   const classes = useStyles();
   const [expanded, setExpanded] = React.useState(false);
+  GitHubCalendar(".calendar", props.userdata.login, { responsive: true });
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
@@ -56,35 +65,37 @@ export default function RecipeReviewCard(props) {
     <Card className={classes.root}>
       <CardHeader
         avatar={
-          <Avatar aria-label="recipe" className={classes.avatar}>
-            R
-            {/* first letter of the name */}
+          <Avatar aria-label="Avatar" className={classes.avatar}>
+            {String(props.userdata.login).charAt(0)}
           </Avatar>
         }
-        action={
-          <IconButton aria-label="settings">
-            <MoreVertIcon />
-          </IconButton>
-        }
-        title={props.data.login}
-        subheader={`Member since ${props.data.created_at}`}
+        title={props.userdata.login}
+        subheader={`Member since ${props.userdata.created_at}`}
       />
       <CardMedia
         className={classes.media}
-        image="/static/images/cards/paella.jpg" 
+        image={props.userdata.avatar_url} 
         title="Profile picture"
       />
       <CardContent>
         <Typography variant="body2" color="textSecondary" component="p">
-          {props.data.name}
+          {props.userdata.name}
         </Typography>
         <Typography variant="body2" color="textSecondary" component="p">
-          {props.data.bio}
+          {props.userdata.bio}
         </Typography>
       </CardContent>
+
+      <CardContent>
+        <Typography variant="body2" color="textSecondary" component="p">
+            Contributions
+        </Typography>
+          <div className="calendar"></div>
+      </CardContent>
+
       <CardActions disableSpacing>
         <IconButton aria-label="share">
-          <PeopleIcon/>{props.data.followers}
+          <PeopleIcon/>{props.userdata.followers}
         </IconButton>
         <IconButton aria-label="share">
           <GitHubIcon/>
@@ -101,38 +112,40 @@ export default function RecipeReviewCard(props) {
         </IconButton>
       </CardActions>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <CardContent>
-          <CardMedia className={classes.media} 
-          image="https://help.github.com/assets/images/help/profile/contributions_graph.png" 
-          title="Contributions"
-          />
-        </CardContent>
+
+
         <CardContent className={classes.connections}> 
           <CardContent>
             <Typography variant="body2" color="textSecondary" component="p">
-              {props.data.followers} Followers
+              {props.userdata.followers} Followers
             </Typography>
-            <CardHeader avatar={
-                    <Avatar aria-label="recipe" className={classes.avatar}>
-                      R
-                      {/* first letter of the name */}
+              {props.followers.map(e=>{
+                return (
+                  <CardHeader className={classes.users} avatar={
+                    <Avatar aria-label="Following" className={classes.avatar} src={e.avatar_url}>
+                      {String(e.login).charAt(0)}
                     </Avatar>
-                }
-                title={props.data.login}
-              />
+                    }
+                    title={e.login}
+                    />
+                )
+              })}              
           </CardContent>
           <CardContent>
             <Typography variant="body2" color="textSecondary" component="p">
-              {props.data.following} Following
+              {props.userdata.following} Following
             </Typography>
-            <CardHeader avatar={
-              <Avatar aria-label="recipe" className={classes.avatar}>
-                R
-                {/* first letter of the name */}
-              </Avatar>
-              }
-              title={props.data.login}
-              />  
+            {props.following.map(e=>{
+              return (
+                  <CardHeader className={classes.users} avatar={
+                    <Avatar aria-label="Following" className={classes.avatar} src={e.avatar_url}>
+                      {String(e.login).charAt(0)}
+                    </Avatar>
+                    }
+                    title={e.login}
+                    />
+                )
+              })}    
           </CardContent>
         </CardContent>
       </Collapse>
